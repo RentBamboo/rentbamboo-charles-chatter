@@ -1,4 +1,4 @@
-// SimpleChatbot.js - The main script file that will be hosted on a CDN
+// index.js - The main script file that will be hosted on a CDN
 (function () {
   // SimpleChatbot namespace
   window.SimpleChatbot = window.SimpleChatbot || {};
@@ -9,7 +9,7 @@
     primaryColor: "#0066ff",
     welcomeMessage: "Welcome! How can I help you today?",
     companyName: "Chat Support",
-    position: "right", // 'right' or 'left'
+    position: "left", // 'right' or 'left'
     autoShow: false, // whether to automatically show the chatbot after a delay
     autoShowDelay: 30000, // delay in ms before showing chatbot automatically
     showNotification: true, // whether to show notification badge
@@ -24,6 +24,8 @@
 
   // Main initialization function
   function init() {
+    // Gather some team information using the client id.
+
     // Inject CSS styles
     injectStyles();
 
