@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/RentBamboo/rentbamboo-charles-chatter/issues"
   },
-  "homepage": "https://github.com/RentBamboo/rentbamboo-charles-chatter#readme"
+  "homepage": "https://github.com/RentBamboo/rentbamboo-charles-chatter#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
 }

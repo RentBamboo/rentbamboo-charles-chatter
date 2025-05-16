@@ -1,19 +1,26 @@
 // index.js - The main script file that will be hosted on a CDN
 (function () {
+  // Get client ID from script tag data attribute
+  const scriptTag = document.querySelector("#rentbamboo-charles");
+  const clientId = scriptTag
+    ? scriptTag.getAttribute("data-client-id")
+    : "demo";
+
   // SimpleChatbot namespace
   window.SimpleChatbot = window.SimpleChatbot || {};
 
   // Default configuration
   const defaultConfig = {
-    clientId: "demo",
+    clientId: clientId,
     primaryColor: "#0066ff",
     welcomeMessage: "Welcome! How can I help you today?",
-    companyName: "Chat Support",
+    companyName: "Rentbamboo Charles Chatter",
+    size: "small", // small, medium,
     position: "left", // 'right' or 'left'
     autoShow: false, // whether to automatically show the chatbot after a delay
     autoShowDelay: 30000, // delay in ms before showing chatbot automatically
     showNotification: true, // whether to show notification badge
-    apiEndpoint: "https://api.simplechatbot.com", // endpoint for server communication
+    apiEndpoint: "http://localhost:8080", // endpoint for server communication // will be api.rentbamboo.com
   };
 
   // Merge user config with defaults
@@ -69,7 +76,7 @@
     const css = `
             /* ChatBot Container */
             #sc-chatbot-container {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+                font-family: Manrope, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
                 font-size: 14px;
                 line-height: 1.4;
                 color: #333;
@@ -85,8 +92,8 @@
                 position: fixed;
                 bottom: 20px;
                 ${config.position === "right" ? "right: 20px;" : "left: 20px;"}
-                width: 60px;
-                height: 60px;
+                width: 40px;
+                height: 40px;
                 border-radius: 50%;
                 background-color: ${config.primaryColor};
                 display: flex;
@@ -112,8 +119,8 @@
                 position: fixed;
                 bottom: 90px;
                 ${config.position === "right" ? "right: 20px;" : "left: 20px;"}
-                width: 350px;
-                height: 450px;
+                width: ${config.size === "small" ? "350px" : "450px"};
+                height: ${config.size === "small" ? "450px" : "600px"};
                 background-color: white;
                 border-radius: 12px;
                 box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
@@ -146,6 +153,14 @@
                 opacity: 0.8;
                 transition: opacity 0.2s ease;
             }
+
+
+            .sc-expand-chat {
+                cursor: pointer;
+                opacity: 0.8;
+                transition: opacity 0.2s ease;
+            }
+
 
             .sc-close-chat:hover {
                 opacity: 1;
@@ -189,16 +204,18 @@
                 padding: 12px;
                 border-top: 1px solid #eee;
                 background-color: white;
+                position: relative;
             }
 
             .sc-chat-input {
                 flex: 1;
-                padding: 10px 16px;
+                padding: 10px 40px 10px 16px;
                 border: 1px solid #ddd;
                 border-radius: 20px;
                 outline: none;
                 font-size: 14px;
                 transition: border 0.2s ease;
+                width: 100%;
             }
 
             .sc-chat-input:focus {
@@ -212,12 +229,15 @@
                 border-radius: 50%;
                 width: 36px;
                 height: 36px;
-                margin-left: 10px;
                 cursor: pointer;
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 transition: background-color 0.2s ease;
+                position: absolute;
+                right: 20px;
+                top: 50%;
+                transform: translateY(-50%);
             }
 
             .sc-send-button:hover {
@@ -293,7 +313,7 @@
     // Create chat button
     const chatButtonHTML = `
             <div class="sc-chat-button" id="sc-chatButton">
-                <div class="sc-chat-icon">💬</div>
+                <div class="sc-chat-icon"><img src="https://rentbamboo.com/sean.png" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;"></div>
                 <div class="sc-notification-badge" id="sc-notificationBadge">1</div>
             </div>
         `;
@@ -303,7 +323,12 @@
             <div class="sc-chat-window" id="sc-chatWindow">
                 <div class="sc-chat-header">
                     <div>${config.companyName}</div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
                     <div class="sc-close-chat" id="sc-closeChat">✕</div>
+                    <div class="sc-expand-chat" id="sc-expand">
+                    ${config.size === "small" ? "⤢" : "⤡"}
+                    </div>
+                    </div>
                 </div>
                 <div class="sc-chat-messages" id="sc-chatMessages">
                     <!-- Messages will be added here dynamically -->
@@ -312,7 +337,7 @@
                     Bot is typing...
                 </div>
                 <div class="sc-chat-input-area">
-                    <input type="text" class="sc-chat-input" id="sc-chatInput" placeholder="Type your message here...">
+                    <input type="text" class="sc-chat-input" id="sc-chatInput" placeholder="Any 2 Bedroom Apartments in...">
                     <button class="sc-send-button" id="sc-sendButton">➤</button>
                 </div>
             </div>
@@ -339,6 +364,7 @@
     const chatButton = document.getElementById("sc-chatButton");
     const chatWindow = document.getElementById("sc-chatWindow");
     const closeChat = document.getElementById("sc-closeChat");
+    const expand = document.getElementById("sc-expand");
     const chatMessages = document.getElementById("sc-chatMessages");
     const chatInput = document.getElementById("sc-chatInput");
     const sendButton = document.getElementById("sc-sendButton");
@@ -348,7 +374,9 @@
     // Event listeners
     chatButton.addEventListener("click", toggleChat);
     closeChat.addEventListener("click", closeWindow);
+    expand.addEventListener("click", expandWindow);
     sendButton.addEventListener("click", sendMessage);
+
     chatInput.addEventListener("keypress", function (e) {
       if (e.key === "Enter") {
         sendMessage();
@@ -412,6 +440,30 @@
       });
     }
 
+    function expandWindow() {
+      if (config.size === "small") {
+        config.size = "medium";
+        chatWindow.style.width = "450px";
+        chatWindow.style.height = "600px";
+        expand.innerHTML = "⤡";
+      } else {
+        config.size = "small";
+        chatWindow.style.width = "350px";
+        chatWindow.style.height = "450px";
+        expand.innerHTML = "⤢";
+      }
+
+      // Toggle the expanded state
+      chatWindow.classList.toggle("sc-expanded");
+
+      // Send event to server
+      sendToServer({
+        type: "chatExpanded",
+        sessionId: sessionId,
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     function sendMessage() {
       const message = chatInput.value.trim();
       if (message) {
@@ -423,6 +475,7 @@
           role: "user",
           content: message,
           timestamp: new Date().toISOString(),
+          sessionId: sessionId,
         });
 
         // Clear input
@@ -442,7 +495,7 @@
         // Get response (either from server or local)
         setTimeout(() => {
           // Try to get response from server first
-          getResponseFromServer(message)
+          getResponseFromServer(message, sessionId)
             .then((response) => {
               // Hide typing indicator
               typingIndicator.style.display = "none";
@@ -472,6 +525,7 @@
                 role: "bot",
                 content: localResponse,
                 timestamp: new Date().toISOString(),
+                sessionId: sessionId,
               });
             });
         }, 1000); // Delay to simulate thinking
@@ -519,9 +573,6 @@
     try {
       const response = await fetch(`${config.apiEndpoint}/events`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify(data),
       });
 
@@ -533,18 +584,16 @@
   }
 
   // Get response from server
-  async function getResponseFromServer(message) {
+  async function getResponseFromServer(message, session) {
     try {
       const response = await fetch(`${config.apiEndpoint}/message`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({
           clientId: config.clientId,
           message: message,
           timestamp: new Date().toISOString(),
           page: window.location.href,
+          sessionId: session,
         }),
       });
 
@@ -553,7 +602,7 @@
       }
 
       const data = await response.json();
-      return data.response;
+      return data.data; // Changed from data.response to data.data to match server response format
     } catch (error) {
       console.error("Error getting response from server:", error);
       throw error;
@@ -572,21 +621,11 @@
     ) {
       return "Hello! How can I help you today?";
     } else if (message.includes("thank")) {
-      return "You're welcome! Is there anything else you need help with?";
+      return "You're welcome!";
     } else if (message.includes("bye") || message.includes("goodbye")) {
-      return "Goodbye! Feel free to chat again if you have more questions.";
-    } else if (message.includes("help")) {
-      return "I'm here to help! What do you need assistance with?";
-    } else if (
-      message.includes("price") ||
-      message.includes("cost") ||
-      message.includes("pricing")
-    ) {
-      return "Our pricing starts at $9.99/month. Would you like more details about our pricing plans?";
-    } else if (message.includes("feature") || message.includes("product")) {
-      return "Our product includes many great features! Would you like to know about something specific?";
+      return "Goodbye! Have a great day!";
     } else {
-      return "Thanks for your message. We'll get back to you soon. In the meantime, is there anything else I can help with?";
+      throw new Error("Use server response");
     }
   }
 
